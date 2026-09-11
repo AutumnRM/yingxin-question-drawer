@@ -350,7 +350,7 @@
     <span class="meter" id="starTag" aria-hidden="true"><i></i><i></i><i></i></span>
   </div>
   <h1 class="q" id="question">准备好了吗？</h1>
-  <p class="sub" id="hint">点击「抽题」，抽到的同学现场作答</p>
+  <p class="sub" id="hint">点击「抽题」开始，可连续抽题</p>
   <section class="ans" id="answerBox" hidden>
     <div class="anshead mono">参考答案 / ANSWER<i></i></div>
     <p class="anstext" id="answerText"></p>
@@ -360,6 +360,7 @@
 <footer>
   <div class="btns">
     <button class="btn solid" id="drawBtn"><span>抽题</span><em>Space</em></button>
+    <button class="btn" id="finishBtn"><span>完成</span><em>End</em></button>
     <button class="btn" id="revealBtn"><span>显示答案</span><em>Enter</em></button>
     <button class="btn" id="resetBtn"><span>重置</span><em>R</em></button>
     <button class="btn ghost" id="fsBtn"><span>全屏</span><em>F</em></button>
@@ -367,7 +368,7 @@
   </div>
   <div class="rail">
     <span class="mono count" id="timerText">30s</span>
-    <span class="mono" id="keyhint">Space 抽题 · Enter 答案 · R 重置</span>
+    <span class="mono" id="keyhint">Space 抽题 · Enter 答案 · End 完成 · R 重置</span>
     <span class="mono brandsm">计算机与网络空间安全协会</span>
   </div>
 </footer>
@@ -378,7 +379,7 @@
   <div class="gatebg" id="gateBg"></div>
   <div class="gatepanel">
     <div class="gatehead">
-      <span class="mono">登记 / Check in</span>
+      <span class="mono">完成登记 / Finish</span>
       <button class="icon" id="gateClose" type="button">✕</button>
     </div>
     <form id="regForm" autocomplete="off" novalidate>
@@ -392,9 +393,14 @@
         <input id="inSid" type="text" maxlength="20" inputmode="numeric" placeholder="例如 2024010101"
                autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
       </label>
+      <label class="fld">
+        <span class="mono">联系信息 / Contact（可选）</span>
+        <input id="inContact" type="text" placeholder="微信 / 手机 / 邮箱（可选）"
+               autocomplete="off" autocapitalize="off" spellcheck="false">
+      </label>
       <p class="err mono" id="gateErr"></p>
-      <button class="btn solid" id="goBtn" type="submit"><span>确认并抽题</span><em>Enter</em></button>
-      <p class="gohint mono">信息只写入本机浏览器，不会上传到任何服务器</p>
+      <button class="btn solid" id="goBtn" type="submit"><span>保存信息</span><em>Enter</em></button>
+      <p class="gohint mono">信息只写入本机浏览器，不会上传到任何服务器；联系信息不做格式限制</p>
     </form>
   </div>
 </div>
@@ -431,7 +437,7 @@
       </div>
       <div class="col">
         <h4 class="mono">说明</h4>
-        <p class="note">题目抽完会自动重新洗牌，改设置从下一题生效。<br>点击卡片也能翻答案，Esc 关闭本面板。</p>
+        <p class="note">题目抽完会自动重新洗牌，改设置从下一题生效。<br>可连续抽题，点击“完成”后登记本轮信息；Esc 关闭本面板。</p>
       </div>
     </div>
   </div>
@@ -535,7 +541,7 @@ var state = {
   enabled:{}, seconds:30, noRepeat:true,
   pool:[], drawn:[], current:-1, idle:true,
   timer:null, busy:false, seq:0,
-  gateOpen:false, needReg:true, who:null
+  gateOpen:false, who:null, sessionDraws:[], completed:false
 };
 
 function $(id){ return document.getElementById(id); }
@@ -675,6 +681,7 @@ function addRecord(qi){
   records.push({
     n: state.who.name,
     s: state.who.sid,
+    contact: state.who.contact,
     c: CATS[QUESTIONS[qi].c].name,
     q: QUESTIONS[qi].q,
     t: new Date().toISOString()
@@ -682,6 +689,10 @@ function addRecord(qi){
   if(records.length > 3000) records = records.slice(records.length - 3000);
   saveRecords();
   updateRecStat();
+}
+function addSessionRecords(){
+  for(var i=0;i<state.sessionDraws.length;i++) addRecord(state.sessionDraws[i]);
+  state.sessionDraws = [];
 }
 function csvCell(v){
   v = (v === null || v === undefined) ? "" : String(v);
@@ -692,14 +703,14 @@ function stamp(){
   return d.getFullYear() + two(d.getMonth()+1) + two(d.getDate()) + "_" + two(d.getHours()) + two(d.getMinutes());
 }
 function buildCSV(){
-  var rows = [["序号","姓名","学号","分类","抽到的题目","抽题时间"]];
+  var rows = [["序号","姓名","学号","联系信息","分类","抽到的题目","抽题时间"]];
   for(var i=0;i<records.length;i++){
     var r = records[i], d = new Date(r.t), time = r.t;
     if(!isNaN(d.getTime())){
       time = d.getFullYear() + "-" + two(d.getMonth()+1) + "-" + two(d.getDate()) + " " +
              two(d.getHours()) + ":" + two(d.getMinutes()) + ":" + two(d.getSeconds());
     }
-    rows.push([i+1, r.n, r.s, r.c, r.q, time]);
+    rows.push([i+1, r.n, r.s, r.contact, r.c, r.q, time]);
   }
   var csv = "";
   for(var k=0;k<rows.length;k++){
@@ -743,6 +754,7 @@ function openGate(){
   $("gateErr").textContent = "";
   $("inName").value = "";
   $("inSid").value = "";
+  $("inContact").value = "";
   var g = $("gate");
   g.hidden = false;
   void g.offsetWidth;
@@ -770,17 +782,20 @@ function submitReg(e){
   if(e && e.preventDefault) e.preventDefault();
   var name = $("inName").value.replace(/\s+/g, " ").trim();
   var sid = $("inSid").value.replace(/\s+/g, "").trim();
+  var contact = $("inContact").value.trim();
   if(name.length < 1){ gateError("请填写姓名", "inName"); return; }
   if(name.length > 20){ gateError("姓名请控制在 20 字以内", "inName"); return; }
   if(!/^[0-9A-Za-z-]{4,20}$/.test(sid)){ gateError("学号格式不对：4–20 位数字或字母", "inSid"); return; }
 
   var dup = timesOf(sid);
-  state.who = { name:name, sid:sid };
-  state.needReg = false;
+  var count = state.sessionDraws.length;
+  state.who = { name:name, sid:sid, contact:contact };
+  addSessionRecords();
+  state.completed = true;
   updateWho();
   closeGate();
-  drawNow();
-  if(dup > 0) toast("该学号已登记过 " + dup + " 次，本次仍会新增一条记录");
+  toast("已完成并保存 " + count + " 条记录");
+  if(dup > 0) setTimeout(function(){ toast("该学号此前已登记过 " + dup + " 次"); }, 2300);
 }
 
 /* ---------- 抽题（含特效） ---------- */
@@ -789,16 +804,26 @@ function finishDraw(idx){
   state.idle = false;
   state.busy = false;
   if(state.drawn.indexOf(idx) < 0) state.drawn.push(idx);
+  state.sessionDraws.push(idx);
+  state.completed = false;
   paint(idx);
   updateProgress();
   startTimer(state.seconds);
-  addRecord(idx);
-  state.needReg = true;
 }
 function draw(){
   if(state.busy || state.gateOpen) return;
-  if(state.needReg){ openGate(); return; }
+  if(state.completed){
+    state.completed = false;
+    state.who = null;
+    updateWho();
+  }
   drawNow();
+}
+function finish(){
+  if(state.busy || state.gateOpen) return;
+  if(state.idle || !state.sessionDraws.length){ toast("先抽至少一道题"); return; }
+  if(state.completed){ toast("本轮已经完成，可继续抽题"); return; }
+  openGate();
 }
 function drawNow(){
   if(state.busy) return;
@@ -883,9 +908,10 @@ function buildAnswer(text){
 function reset(){
   stopTimer();
   state.drawn = [];
+  state.sessionDraws = [];
   state.current = -1;
   state.idle = true;
-  state.needReg = true;
+  state.completed = false;
   state.who = null;
   updateWho();
   buildPool();
@@ -959,6 +985,7 @@ function applyTheme(t){
 /* ---------- 交互 ---------- */
 function bind(){
   $("drawBtn").addEventListener("click", function(){ draw(); });
+  $("finishBtn").addEventListener("click", function(){ finish(); });
   $("gateBg").addEventListener("click", closeGate);
   $("gateClose").addEventListener("click", closeGate);
   $("regForm").addEventListener("submit", submitReg);
@@ -986,6 +1013,7 @@ function bind(){
     if(e.code === "Escape"){ if(state.gateOpen){ closeGate(); return; } sheet(false); return; }
     if(e.code === "Space"){ e.preventDefault(); draw(); }
     else if(e.code === "Enter" || e.code === "NumpadEnter"){ e.preventDefault(); reveal(); }
+    else if(e.code === "End"){ e.preventDefault(); finish(); }
     else if(e.code === "KeyR"){ reset(); }
     else if(e.code === "KeyF"){ $("fsBtn").click(); }
     endIntro();
