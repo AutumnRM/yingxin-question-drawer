@@ -350,7 +350,7 @@
     <span class="meter" id="starTag" aria-hidden="true"><i></i><i></i><i></i></span>
   </div>
   <h1 class="q" id="question">准备好了吗？</h1>
-  <p class="sub" id="hint">点击「抽题」开始，可连续抽题</p>
+  <p class="sub" id="hint">选择模式开始抽题：简单适合热身，困难适合进阶</p>
   <section class="ans" id="answerBox" hidden>
     <div class="anshead mono">参考答案 / ANSWER<i></i></div>
     <p class="anstext" id="answerText"></p>
@@ -359,7 +359,8 @@
 
 <footer>
   <div class="btns">
-    <button class="btn solid" id="drawBtn"><span>抽题</span><em>Space</em></button>
+    <button class="btn solid" id="simpleBtn"><span>简单模式</span><em>1</em></button>
+    <button class="btn" id="hardBtn"><span>困难模式</span><em>2</em></button>
     <button class="btn" id="finishBtn"><span>完成</span><em>End</em></button>
     <button class="btn" id="revealBtn"><span>显示答案</span><em>Enter</em></button>
     <button class="btn" id="resetBtn"><span>重置</span><em>R</em></button>
@@ -368,7 +369,7 @@
   </div>
   <div class="rail">
     <span class="mono count" id="timerText">30s</span>
-    <span class="mono" id="keyhint">Space 抽题 · Enter 答案 · End 完成 · R 重置</span>
+    <span class="mono" id="keyhint">1 简单 · 2 困难 · Enter 答案 · End 完成 · R 重置</span>
     <span class="mono brandsm">计算机与网络空间安全协会</span>
   </div>
 </footer>
@@ -422,7 +423,7 @@
         <div id="timeBox"></div>
       </div>
       <div class="col">
-        <h4 class="mono">抽题方式</h4>
+        <h4 class="mono">抽题规则</h4>
         <label class="ck"><input type="radio" name="mode" value="norepeat" checked><span class="box"></span><span>抽过不放回</span></label>
         <label class="ck"><input type="radio" name="mode" value="repeat"><span class="box"></span><span>放回，允许重复</span></label>
       </div>
@@ -437,7 +438,7 @@
       </div>
       <div class="col">
         <h4 class="mono">说明</h4>
-        <p class="note">题目抽完会自动重新洗牌，改设置从下一题生效。<br>可连续抽题，点击“完成”后登记本轮信息；Esc 关闭本面板。</p>
+        <p class="note">简单模式包含新增的泛计算机、反诈、泛数码和原有基础题；困难模式归纳原有中偏硬核题。题目抽完会自动重新洗牌，点击“完成”后登记本轮信息。</p>
       </div>
     </div>
   </div>
@@ -460,7 +461,10 @@ var CATS = {
     data:{name:"数据结构", en:"Data Structures"},
     os:{name:"操作系统", en:"Operating Systems"},
     comp:{name:"组成原理", en:"Computer Systems"},
-    prog:{name:"编程工程", en:"Programming"}
+    prog:{name:"编程工程", en:"Programming"},
+    general:{name:"泛计算机", en:"Computing"},
+    antifraud:{name:"反诈防骗", en:"Anti-fraud"},
+    digital:{name:"泛数码", en:"Digital Life"}
 };
 
 var QUESTIONS = [
@@ -761,16 +765,58 @@ var EXTRA_BANK_6 = [
   {c:"prog",s:1,q:"刚入学零基础，最该拥有的是天赋、耐心，还是一台会发光的键盘？",a:"耐心。"}
 ];
 
+var EXTRA_BANK_7 = [
+  {c:"general",s:1,q:"浏览器和搜索引擎是一回事吗？",a:"不是。浏览器是打开网页的软件，搜索引擎是帮助查找网页的服务。"},
+  {c:"general",s:1,q:"文件名最后的 .jpg、.mp3、.pdf 通常表示什么？",a:"文件类型或格式。"},
+  {c:"general",s:1,q:"把文件复制到云盘后，换一台设备能不能访问？",a:"通常可以，只要登录同一账号并且文件已成功同步。"},
+  {c:"general",s:1,q:"截图和拍照是同一件事吗？",a:"不是。截图保存屏幕内容，拍照是用摄像头记录现实画面。"},
+  {c:"general",s:1,q:"电脑上的“复制”和“剪切”有什么区别？",a:"复制会保留原文件，剪切通常会把内容移动到新位置。"},
+  {c:"general",s:1,q:"重启电脑为什么有时能解决小故障？",a:"它会重新加载系统和程序，清理部分临时状态。"},
+  {c:"general",s:1,q:"浏览器无痕模式能让你在网上完全匿名吗？",a:"不能，它主要减少本机保存的浏览记录，不会让你对网站或网络运营者隐身。"},
+  {c:"general",s:1,q:"软件更新除了增加功能，还可能带来什么好处？",a:"修复漏洞、解决故障并提升兼容性或稳定性。"},
+  {c:"general",s:1,q:"为什么重要文件不能只保存在一台电脑里？",a:"设备可能损坏、丢失或感染病毒，备份可以降低数据丢失风险。"},
+  {c:"general",s:1,q:"二维码除了付款，还可能包含什么？",a:"网址、联系方式、文字或其他数据。"},
+  {c:"general",s:1,q:"手机 App 和手机操作系统有什么区别？",a:"操作系统管理手机的基础资源，App 是运行在系统上的具体应用。"},
+  {c:"general",s:1,q:"Wi-Fi 断开时，已经下载到本地的文件会立刻消失吗？",a:"不会，已经完整保存到本地的文件通常仍然存在。"},
+
+  {c:"antifraud",s:1,q:"陌生来电自称客服并要求你共享屏幕，应该怎么做？",a:"先拒绝共享，挂断后通过官方渠道核实，不要按对方指示操作。"},
+  {c:"antifraud",s:1,q:"对方说“马上转账，否则账号就被冻结”，最应该警惕什么？",a:"利用紧迫感施压的诈骗话术，应停止操作并独立核实。"},
+  {c:"antifraud",s:1,q:"网购退款让你下载陌生 App，合理吗？",a:"不应直接接受，应在官方购物平台内核实退款信息。"},
+  {c:"antifraud",s:1,q:"有人让你打开手机的远程控制功能，可能有什么风险？",a:"对方可能看到屏幕、读取信息或直接操作设备。"},
+  {c:"antifraud",s:1,q:"“刷单返利”先交保证金，通常靠谱吗？",a:"不靠谱，先交钱再返利是常见诈骗模式。"},
+  {c:"antifraud",s:1,q:"AI 换脸或变声的熟人借钱，应该只听声音就相信吗？",a:"不能，应通过原有联系方式或当面等其他方式确认身份。"},
+  {c:"antifraud",s:1,q:"投资广告承诺“稳赚不赔、回报特别高”，应该相信吗？",a:"不应轻信，高收益零风险通常是诈骗或高风险诱导。"},
+  {c:"antifraud",s:1,q:"验证码发给别人后，对方可能用它做什么？",a:"完成登录、改密、转账等需要验证身份的操作。"},
+  {c:"antifraud",s:1,q:"快递理赔短信里的链接，应该直接点击吗？",a:"不要直接点击，应在购物或快递官方 App 中核实。"},
+  {c:"antifraud",s:1,q:"兼职“帮忙过账”并承诺高额报酬，可能涉及什么？",a:"可能涉及洗钱、诈骗资金转移或其他违法活动。"},
+  {c:"antifraud",s:1,q:"发现自己可能被骗后，越早报警有帮助吗？",a:"有帮助，应尽快保存证据并联系警方、银行或支付平台。"},
+  {c:"antifraud",s:1,q:"正规机构会要求你把钱转到个人账户来“验证资金”吗？",a:"通常不会，遇到这种要求应通过官方渠道核实。"},
+
+  {c:"digital",s:1,q:"手机存储空间和运行内存是同一种东西吗？",a:"不是。存储空间保存文件和 App，运行内存影响同时运行程序的能力。"},
+  {c:"digital",s:1,q:"手机相机像素越高，照片一定越好吗？",a:"不一定，镜头、传感器、算法和光线也很重要。"},
+  {c:"digital",s:1,q:"显示器的 60Hz 和 120Hz 主要区别是什么？",a:"刷新率不同，120Hz 通常让滚动和动画看起来更流畅。"},
+  {c:"digital",s:1,q:"手机开启定位后，所有 App 都应该能使用位置吗？",a:"不应该，应只给确实需要定位功能的 App 授权。"},
+  {c:"digital",s:1,q:"手机充电时明显发烫，应该继续高负载使用吗？",a:"不建议，应停止高负载操作并检查充电器、线材和散热情况。"},
+  {c:"digital",s:1,q:"移动电源标注的容量越大，实际给手机充电次数一定越多吗？",a:"不一定，还受转换损耗、手机电池容量和使用情况影响。"},
+  {c:"digital",s:1,q:"蓝牙耳机的降噪功能主要在做什么？",a:"通过检测和抵消环境声音来降低部分背景噪声。"},
+  {c:"digital",s:1,q:"5GHz Wi-Fi 通常比 2.4GHz 更快，但穿墙一定更好吗？",a:"不一定，5GHz 通常速度更高，但覆盖距离和穿墙能力可能较弱。"},
+  {c:"digital",s:1,q:"手机照片自动同步到云端后，删除本地照片一定不会影响云端吗？",a:"不一定，具体取决于同步服务的删除策略，应先确认并做好备份。"},
+  {c:"digital",s:1,q:"不用的旧手机直接扔进普通垃圾桶合适吗？",a:"不合适，电子设备应通过正规回收渠道处理，并先清除个人数据。"},
+  {c:"digital",s:1,q:"USB-C 接口外形一样，就一定支持相同的充电和传输速度吗？",a:"不一定，外形相同不代表协议、功率和传输规格相同。"},
+  {c:"digital",s:1,q:"公共场合连接来路不明的 USB 充电设备有风险吗？",a:"有风险，可能存在数据窃取或恶意设备攻击，应优先使用自己的充电器或充电宝。"}
+];
+
 QUESTIONS = QUESTIONS.concat(
   EXTRA_BANK_1, EXTRA_BANK_2, EXTRA_BANK_3,
-  EXTRA_BANK_4, EXTRA_BANK_5, EXTRA_BANK_6
+  EXTRA_BANK_4, EXTRA_BANK_5, EXTRA_BANK_6, EXTRA_BANK_7
 );
 
 var state = {
   enabled:{}, seconds:30, noRepeat:true,
   pool:[], drawn:[], current:-1, idle:true,
   timer:null, busy:false, seq:0,
-  gateOpen:false, who:null, sessionDraws:[], completed:false
+  gateOpen:false, who:null, sessionDraws:[], completed:false,
+  difficulty:"easy"
 };
 
 function $(id){ return document.getElementById(id); }
@@ -784,10 +830,26 @@ function shuffle(a){
 }
 function enabledIdx(){
   var out=[];
-  for(var i=0;i<QUESTIONS.length;i++){ if(state.enabled[QUESTIONS[i].c]) out.push(i); }
+  for(var i=0;i<QUESTIONS.length;i++){
+    var q = QUESTIONS[i];
+    var isHard = q.s >= 2 && q.c !== "open";
+    if(state.enabled[q.c] && (state.difficulty === "hard" ? isHard : !isHard)) out.push(i);
+  }
   return out;
 }
 function buildPool(){ state.pool = shuffle(enabledIdx()); }
+
+function updateModeUI(){
+  var simple = $("simpleBtn"), hard = $("hardBtn"), hint = $("hint");
+  if(!simple || !hard) return;
+  simple.classList.toggle("solid", state.difficulty === "easy");
+  hard.classList.toggle("solid", state.difficulty === "hard");
+  if(hint && hint.hidden === false){
+    hint.textContent = state.difficulty === "hard" ?
+      "困难模式：已有题库中的中偏硬核知识点" :
+      "简单模式：泛计算机、反诈、泛数码和基础知识";
+  }
+}
 
 function updateProgress(){
   var total = enabledIdx().length;
@@ -839,6 +901,7 @@ function paintIdle(){
   $("hint").hidden = false;
   $("answerBox").hidden = true;
   $("revealBtn").innerHTML = "<span>显示答案</span><em>Enter</em>";
+  updateModeUI();
 }
 
 /* ---------- 计时 ---------- */
@@ -1039,13 +1102,31 @@ function finishDraw(idx){
   updateProgress();
   startTimer(state.seconds);
 }
-function draw(){
+function draw(mode){
   if(state.busy || state.gateOpen) return;
+  mode = mode || state.difficulty;
+  if(mode !== state.difficulty){
+    if(state.sessionDraws.length && !state.completed){
+      toast("请先点击完成登记本轮，再切换模式");
+      return;
+    }
+    stopTimer();
+    state.difficulty = mode;
+    state.pool = [];
+    state.drawn = [];
+    state.current = -1;
+    state.idle = true;
+    state.completed = false;
+    state.who = null;
+    updateWho();
+    paintIdle();
+  }
   if(state.completed){
     state.completed = false;
     state.who = null;
     updateWho();
   }
+  updateModeUI();
   drawNow();
 }
 function finish(){
@@ -1096,7 +1177,7 @@ function drawNow(){
       finishDraw(idx);
       return;
     }
-    var r = QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)].q;
+    var r = QUESTIONS[avail[Math.floor(Math.random()*avail.length)]].q;
     qEl.textContent = r;
     qEl.className = "q flip" + (r.length > 30 ? " small" : "");
   }, 58);
@@ -1213,7 +1294,8 @@ function applyTheme(t){
 
 /* ---------- 交互 ---------- */
 function bind(){
-  $("drawBtn").addEventListener("click", function(){ draw(); });
+  $("simpleBtn").addEventListener("click", function(){ draw("easy"); });
+  $("hardBtn").addEventListener("click", function(){ draw("hard"); });
   $("finishBtn").addEventListener("click", function(){ finish(); });
   $("gateBg").addEventListener("click", closeGate);
   $("gateClose").addEventListener("click", closeGate);
@@ -1241,6 +1323,8 @@ function bind(){
     if(tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
     if(e.code === "Escape"){ if(state.gateOpen){ closeGate(); return; } sheet(false); return; }
     if(e.code === "Space"){ e.preventDefault(); draw(); }
+    else if(e.code === "Digit1" || e.code === "Numpad1"){ e.preventDefault(); draw("easy"); }
+    else if(e.code === "Digit2" || e.code === "Numpad2"){ e.preventDefault(); draw("hard"); }
     else if(e.code === "Enter" || e.code === "NumpadEnter"){ e.preventDefault(); reveal(); }
     else if(e.code === "End"){ e.preventDefault(); finish(); }
     else if(e.code === "KeyR"){ reset(); }
